@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import EmployeeLogin from './components/EmployeeLogin';
+import EmployeeDashboard from './components/EmployeeDashboard';
 import AssignTest from './components/AssignTest';
 import QuestionCard from './components/QuestionCard';
 import ResultTable from './components/ResultTable';
@@ -14,15 +15,23 @@ function App() {
   const [answers, setAnswers] = useState({});
   const [results, setResults] = useState([]);
   const [showResults, setShowResults] = useState(false);
-  const [requiredTests, setRequiredTests] = useState([]); // NEW
+  const [requiredTests, setRequiredTests] = useState([]);
+  const [employeeInfo, setEmployeeInfo] = useState(null);
+  const [employeeRoles, setEmployeeRoles] = useState([]);
+  const [employeeSkills, setEmployeeSkills] = useState([]);
+  const [showDashboard, setShowDashboard] = useState(false);
 
   // Handler for login
-  const handleLogin = async (id, isAdminFlag, requiredTestsList = []) => {
-    setEmployeeId(id);
-    setIsAdmin(isAdminFlag);
-    if (!isAdminFlag) {
-      setRequiredTests(requiredTestsList);
-      setShowResults(true); // Show required tests after login
+  const handleLogin = (data) => {
+    setEmployeeId(data.employeeId);
+    setIsAdmin(data.isAdmin);
+    setRequiredTests(data.requiredTests || []);
+    setEmployeeInfo(data.employeeInfo);
+    setEmployeeRoles(data.employeeRoles || []);
+    setEmployeeSkills(data.employeeSkills || []);
+    if (!data.isAdmin) {
+      setShowDashboard(true); // Show dashboard after login
+      setShowResults(false);
     }
   };
 
@@ -83,6 +92,20 @@ function App() {
         <EntityTable entity="employee_assessment_results" columns={["id","employee_id","assessment_id","score","pass_fail","assessment_date"]} title="Assessment Results" />
         <EntityTable entity="qualifications" columns={["qualification_id","employee_id","qualification_type","institution","year"]} title="Qualifications" />
       </div>
+    );
+  }
+
+  if (showDashboard) {
+    return (
+      <EmployeeDashboard
+        employeeInfo={employeeInfo}
+        employeeRoles={employeeRoles}
+        employeeSkills={employeeSkills}
+        onProceed={() => {
+          setShowDashboard(false);
+          setShowResults(true);
+        }}
+      />
     );
   }
 
