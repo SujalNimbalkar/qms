@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import EmployeeLogin from './components/EmployeeLogin';
 import EmployeeDashboard from './components/EmployeeDashboard';
 import AssignTest from './components/AssignTest';
 import QuestionCard from './components/QuestionCard';
 import ResultTable from './components/ResultTable';
 import EntityTable from './components/EntityTable';
+import { loadCSV } from './utils/csvLoader';
+import { loadCompetencyMap } from './utils/competencyMapLoader';
 import './App.css';
 
 function App() {
@@ -20,6 +22,29 @@ function App() {
   const [employeeRoles, setEmployeeRoles] = useState([]);
   const [employeeSkills, setEmployeeSkills] = useState([]);
   const [showDashboard, setShowDashboard] = useState(false);
+  const [selectedRole, setSelectedRole] = useState(null);
+  const [roles, setRoles] = useState([]);
+  const [roleCompetencies, setRoleCompetencies] = useState([]);
+  const [competencies, setCompetencies] = useState([]);
+  const [competencyMap, setCompetencyMap] = useState({ headers: [], data: [] });
+
+  // Load roles, role_competencies, and competencies CSVs on mount
+  useEffect(() => {
+    async function fetchCSVs() {
+      const [rolesData, roleCompData, compData] = await Promise.all([
+        loadCSV('/excel_data/roles.csv'),
+        loadCSV('/excel_data/role_competencies.csv'),
+        loadCSV('/excel_data/competencies.csv'),
+      ]);
+      setRoles(rolesData);
+      setRoleCompetencies(roleCompData);
+      setCompetencies(compData);
+      // Load Competency Map
+      const compMap = await loadCompetencyMap('/241119%20Competency%20map%20v0.7.csv');
+      setCompetencyMap(compMap);
+    }
+    fetchCSVs();
+  }, []);
 
   // Handler for login
   const handleLogin = (data) => {
@@ -101,10 +126,12 @@ function App() {
         employeeInfo={employeeInfo}
         employeeRoles={employeeRoles}
         employeeSkills={employeeSkills}
-        onProceed={() => {
-          setShowDashboard(false);
-          setShowResults(true);
-        }}
+        selectedRole={selectedRole}
+        setSelectedRole={setSelectedRole}
+        roles={roles}
+        roleCompetencies={roleCompetencies}
+        competencies={competencies}
+        competencyMap={competencyMap}
       />
     );
   }
