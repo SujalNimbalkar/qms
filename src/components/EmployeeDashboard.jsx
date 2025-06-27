@@ -37,33 +37,49 @@ const EmployeeDashboard = ({
   const [allResults, setAllResults] = useState([]); // All employee results
 
   // --- Handle test button click: increment counter and open JotForm ---
+  // const handleTestClick = async (idx, skill, level) => {
+  //   setTestClickCounts((prev) => {
+  //     const newCount = (prev[idx] || 0) + 1;
+  //     // Log button click details
+  //     console.log(`Take Test clicked: Skill='${skill}', Level='${level}', Click Count=${newCount}`);
+  //     return { ...prev, [idx]: newCount };
+  //   });
+  //   // Redirect to JotForm for any skill
+  //   const empName = encodeURIComponent(employeeInfo?.name || '');
+  //   const skillParam = encodeURIComponent(skill);
+  //   const levelParam = encodeURIComponent(level);
+  //   const url = `https://cdn.jotfor.ms/250913387928064?&emp=${empName}&competencyTopic=${skillParam}-${levelParam}`;
+  //   window.open(url, '_blank');
+  //   return;
+  //   // --- (Unused: fetch MCQ test from backend) ---
+  //   // setLoadingTest(true);
+  //   // setTestSkill(`${skill} (Level ${level})`);
+  //   // const skillCode = skillNameToCode[skill] || skill;
+  //   // const levelCode = levelToCode(level);
+  //   // try {
+  //   //   const res = await fetch(`/api/test/get-test/${encodeURIComponent(skillCode)}/${encodeURIComponent(levelCode)}`);
+  //   //   const questions = await res.json();
+  //   //   setTestQuestions(questions);
+  //   // } catch (e) {
+  //   //   setTestQuestions([]);
+  //   // }
+  //   // setLoadingTest(false);
+  // };
   const handleTestClick = async (idx, skill, level) => {
     setTestClickCounts((prev) => {
       const newCount = (prev[idx] || 0) + 1;
-      // Log button click details
-      console.log(`Take Test clicked: Skill='${skill}', Level='${level}', Click Count=${newCount}`);
       return { ...prev, [idx]: newCount };
     });
-    // Redirect to JotForm for any skill
+  
+    // New logic:
+    let levelSuffix = "basic";
+    if (String(level) === "4") levelSuffix = "adv";
+    // Sanitize skill for URL (lowercase, replace spaces with nothing or hyphens if preferred)
+    const skillForTopic = skill.toLowerCase().replace(/\s+/g, '');
     const empName = encodeURIComponent(employeeInfo?.name || '');
-    const skillParam = encodeURIComponent(skill);
-    const levelParam = encodeURIComponent(level);
-    const url = `https://cdn.jotfor.ms/250913387928064?&emp=${empName}&competencyTopic=${skillParam}-${levelParam}`;
-    window.open(url, '_blank');
-    return;
-    // --- (Unused: fetch MCQ test from backend) ---
-    // setLoadingTest(true);
-    // setTestSkill(`${skill} (Level ${level})`);
-    // const skillCode = skillNameToCode[skill] || skill;
-    // const levelCode = levelToCode(level);
-    // try {
-    //   const res = await fetch(`/api/test/get-test/${encodeURIComponent(skillCode)}/${encodeURIComponent(levelCode)}`);
-    //   const questions = await res.json();
-    //   setTestQuestions(questions);
-    // } catch (e) {
-    //   setTestQuestions([]);
-    // }
-    // setLoadingTest(false);
+    const topic = `${skillForTopic}-${levelSuffix}`;
+    const jotformUrl = `https://cdn.jotfor.ms/250913387928064?&emp=${empName}&competencyTopic=${topic}`;
+    window.open(jotformUrl, '_blank');
   };
 
   // --- Close MCQ Test Modal ---
