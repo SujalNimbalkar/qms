@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+const BACKEND = import.meta.env.VITE_BACKEND_URL;
+
 const AssignTest = () => {
   const [employees, setEmployees] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState('');
@@ -9,7 +11,7 @@ const AssignTest = () => {
 
   useEffect(() => {
     // Fetch employee list from backend
-    axios.get('http://localhost:5000/employees')
+    axios.get(`${BACKEND}/employees`)
       .then(response => {
         console.log('Fetched employees:', response.data); // Debugging log
         setEmployees(response.data);
@@ -24,7 +26,7 @@ const AssignTest = () => {
     }
 
     // Call backend API to assign test
-    axios.post('http://localhost:5000/assign-test', {
+    axios.post(`${BACKEND}/assign-test`, {
       adminId: 'E1000', // Force adminId to 'E1000'
       employeeId: selectedEmployee,
       testName: selectedTest,

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 
+const BACKEND = import.meta.env.VITE_BACKEND_URL;
+
 const EmployeeLogin = ({ onLogin }) => {
   const [employeeId, setEmployeeId] = useState('');
   const [error, setError] = useState('');
@@ -10,7 +12,7 @@ const EmployeeLogin = ({ onLogin }) => {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/employee-exists/${employeeId}`);
+      const res = await fetch(`${BACKEND}/employee-exists/${employeeId}`);
       if (!res.ok) {
         if (res.status === 404) {
           throw new Error("Employee not found");
@@ -20,19 +22,19 @@ const EmployeeLogin = ({ onLogin }) => {
       }
       const data = await res.json();
       let requiredTests = [];
-      if (!data.isAdmin) {
-        if (employeeId === "26") {
-          const testsRes = await fetch(`http://localhost:5000/employee/26/tests`);
-          const testsData = await testsRes.json();
-          requiredTests = testsData.tests || [];
-        } else {
-          const testsRes = await fetch(`http://localhost:5000/employee/${employeeId}/required-tests`);
-          const testsData = await testsRes.json();
-          requiredTests = testsData.tests || [];
-        }
-      }
+      // if (!data.isAdmin) {
+      //   if (employeeId === "26") {
+      //     const testsRes = await fetch(`http://localhost:5000/employee/26/tests`);
+      //     const testsData = await testsRes.json();
+      //     requiredTests = testsData.tests || [];
+      //   } else {
+      //     const testsRes = await fetch(`http://localhost:5000/employee/${employeeId}/required-tests`);
+      //     const testsData = await testsRes.json();
+      //     requiredTests = testsData.tests || [];
+      //   }
+      // }
       // Fetch employee info (name and department/designation)
-      const infoRes = await fetch(`http://localhost:5000/employee/${employeeId}`);
+      const infoRes = await fetch(`${BACKEND}/employee/${employeeId}`);
       let employeeInfo = null;
       let employeeRoles = [];
       let employeeSkills = [];
@@ -41,12 +43,12 @@ const EmployeeLogin = ({ onLogin }) => {
         employeeInfo = infoData;
         // Fetch roles by name (using new API)
         if (infoData.name) {
-          const rolesRes = await fetch(`http://localhost:5000/api/employee/roles?name=${encodeURIComponent(infoData.name)}`);
+          const rolesRes = await fetch(`${BACKEND}/api/employee/roles?name=${encodeURIComponent(infoData.name)}`);
           if (rolesRes.ok) {
             const rolesData = await rolesRes.json();
             employeeRoles = rolesData.roles || [];
             // Fetch all skills for these roles from the JSON file
-            const skillsRes = await fetch('http://localhost:5000/excel_data/employee_skills_levels.json');
+            const skillsRes = await fetch(`${BACKEND}/excel_data/employee_skills_levels.json`);
             if (skillsRes.ok) {
               const allSkills = await skillsRes.json();
               const userSkills = allSkills.find(e => e.Employee === infoData.name);
