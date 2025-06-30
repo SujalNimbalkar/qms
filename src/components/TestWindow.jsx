@@ -3,11 +3,15 @@ import { useLocation } from 'react-router-dom';
 
 const TestWindow = () => {
   const location = useLocation();
-  const { skill, level, employeeInfo } = location.state || {};
+  const { skill, level, employeeInfo, employeeRoles, employeeId } = location.state || {};
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [skillMap, setSkillMap] = useState({});
   const [selectedAnswers, setSelectedAnswers] = useState({});
+
+  console.log("TestWindow location.state:", location.state);
+  console.log("TestWindow employeeInfo:", employeeInfo);
+  console.log("TestWindow employeeRoles:", employeeRoles);
 
   // Fetch skill code map from backend
   useEffect(() => {
@@ -47,9 +51,41 @@ const TestWindow = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // For now, just log the answers. You can send to backend here.
-    console.log('Submitted answers:', selectedAnswers);
-    alert('Answers submitted! (Check console for details)');
+
+    // Use employeeId from navigation state, fallback to employeeInfo
+    const empId = employeeId || employeeInfo?.id || employeeInfo?.employee_id || employeeInfo?.emp_id;
+    const employeeName = employeeInfo?.name || employeeInfo?.employee_name;
+    const employeePosition = (employeeInfo?.roles && employeeInfo.roles[0]) || (Array.isArray(employeeRoles) && employeeRoles[0]) || employeeInfo?.position || employeeInfo?.role;
+
+    const submissions = questions.map((q, i) => {
+      const selectedIdx = q.options.findIndex(opt => opt === selectedAnswers[i]);
+      const selected_letter = selectedIdx !== -1 ? String.fromCharCode(65 + selectedIdx) : '';
+      return {
+        question_id: q._id || q.question_id,
+        question_text: q.question_text,
+        options: q.options,
+        selected_letter,
+        skill: q.skill_id || skill,
+        level: q.difficulty || level,
+        employee_id: empId,
+        employee_name: employeeName,
+        employee_position: employeePosition
+      };
+    });
+
+    fetch('/api/mcq/submit-answers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ submissions })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) alert('Answers submitted!');
+        else alert('Submission failed');
+      })
+      .catch(() => {
+        alert('Submission failed');
+      });
   };
 
   if (loading) return <div>Loading...</div>;

@@ -18,6 +18,7 @@ const levelToCode = (level) => `l${level}`;
  * Shows employee info, required skills/tests, and allows test taking
  */
 const EmployeeDashboard = ({
+  employeeId,
   employeeInfo,
   employeeRoles,
   employeeSkills,
@@ -44,7 +45,8 @@ const EmployeeDashboard = ({
       const newCount = (prev[idx] || 0) + 1;
       return { ...prev, [idx]: newCount };
     });
-    navigate('/test', { state: { skill, level, employeeInfo } });
+    console.log("Navigating to test with employeeInfo:", employeeInfo);
+    navigate('/test', { state: { skill, level, employeeInfo, employeeRoles, employeeId } });
   };
 
   // --- Close MCQ Test Modal ---

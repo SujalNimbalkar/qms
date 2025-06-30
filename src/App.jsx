@@ -9,6 +9,7 @@ import { loadCSV } from './utils/csvLoader';
 import { loadCompetencyMap } from './utils/competencyMapLoader';
 import Login from './components/Login';
 import TestWindow from './components/TestWindow';
+import SubmittedAnswers from './components/SubmittedAnswers';
 import './App.css';
 
 const BACKEND = import.meta.env.VITE_BACKEND_URL;
@@ -109,6 +110,7 @@ function App() {
           element={
             user && !isAdmin ? (
               <EmployeeDashboard
+                employeeId={employeeId}
                 employeeInfo={employeeInfo}
                 employeeRoles={employeeRoles}
                 employeeSkills={employeeSkills}
@@ -125,6 +127,7 @@ function App() {
           }
         />
         <Route path="/test" element={<TestWindow />} />
+        <Route path="/submitted-answers" element={<SubmittedAnswers />} />
         {/* Add more admin/entity routes as needed */}
       </Routes>
     </Router>
