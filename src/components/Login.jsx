@@ -15,7 +15,15 @@ function Login({ onLogin }) {
       toast.success("User logged in Successfully", { position: "top-center" });
       if (onLogin) onLogin(user); // Call parent with user object
     } catch (error) {
-      toast.error(error.message, { position: "bottom-center" });
+      let message = "Login failed. Please try again.";
+      if (error.code === "auth/wrong-password") {
+        message = "Incorrect password. Please try again.";
+      } else if (error.code === "auth/user-not-found") {
+        message = "No user found with this email.";
+      } else if (error.code === "auth/invalid-email") {
+        message = "Invalid email format.";
+      }
+      toast.error(message, { position: "bottom-center" });
     }
   };
 
@@ -50,10 +58,6 @@ function Login({ onLogin }) {
           Submit
         </button>
       </div>
-      {/* <p className="forgot-password text-right">
-        New user <a href="/register">Register Here</a>
-      </p> */}
-      {/* <SignInwithGoogle/> */}
     </form>
   );
 }

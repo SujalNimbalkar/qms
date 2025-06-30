@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import EmployeeDashboard from './components/EmployeeDashboard';
 import AssignTest from './components/AssignTest';
 import QuestionCard from './components/QuestionCard';
@@ -7,6 +8,7 @@ import EntityTable from './components/EntityTable';
 import { loadCSV } from './utils/csvLoader';
 import { loadCompetencyMap } from './utils/competencyMapLoader';
 import Login from './components/Login';
+import TestWindow from './components/TestWindow';
 import './App.css';
 
 const BACKEND = import.meta.env.VITE_BACKEND_URL;
@@ -24,14 +26,12 @@ function App() {
   const [employeeInfo, setEmployeeInfo] = useState(null);
   const [employeeRoles, setEmployeeRoles] = useState([]);
   const [employeeSkills, setEmployeeSkills] = useState([]);
-  const [showDashboard, setShowDashboard] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
   const [roles, setRoles] = useState([]);
   const [roleCompetencies, setRoleCompetencies] = useState([]);
   const [competencies, setCompetencies] = useState([]);
   const [competencyMap, setCompetencyMap] = useState({ headers: [], data: [] });
 
-  // Load roles, role_competencies, and competencies CSVs on mount
   useEffect(() => {
     async function fetchCSVs() {
       const [rolesData, roleCompData, compData] = await Promise.all([
@@ -42,17 +42,14 @@ function App() {
       setRoles(rolesData);
       setRoleCompetencies(roleCompData);
       setCompetencies(compData);
-      // Load Competency Map
       const compMap = await loadCompetencyMap('/241119%20Competency%20map%20v0.7.csv');
       setCompetencyMap(compMap);
     }
     fetchCSVs();
   }, []);
 
-  // Handler for login (Firebase Auth)
   const handleLogin = async (firebaseUser) => {
     setUser(firebaseUser);
-    // 1. Get employee ID by email
     const firebaseEmail = firebaseUser.email;
     const res = await fetch(`${BACKEND}/employee-id-by-email/${encodeURIComponent(firebaseEmail)}`);
     if (!res.ok) {
@@ -62,14 +59,7 @@ function App() {
     }
     const { employee_id } = await res.json();
     setEmployeeId(employee_id);
-
-    // 2. Fetch admin status
-    // If you have a way to determine admin by email, do it here.
-    // Otherwise, you can hardcode a special email or employee_id for admin
-    // For now, let's check if employee_id is "E1000" for admin
     setIsAdmin(employee_id === "E1000");
-
-    // 3. Fetch employee info (name, department/designation)
     const infoRes = await fetch(`${BACKEND}/employee/${employee_id}`);
     let employeeInfo = null;
     let employeeRoles = [];
@@ -77,13 +67,11 @@ function App() {
     if (infoRes.ok) {
       const infoData = await infoRes.json();
       employeeInfo = infoData;
-      // Fetch roles by name (using new API)
       if (infoData.name) {
         const rolesRes = await fetch(`${BACKEND}/api/employee/roles?name=${encodeURIComponent(infoData.name)}`);
         if (rolesRes.ok) {
           const rolesData = await rolesRes.json();
           employeeRoles = rolesData.roles || [];
-          // Fetch all skills for these roles from the JSON file
           const skillsRes = await fetch(`${BACKEND}/excel_data/employee_skills_levels.json`);
           if (skillsRes.ok) {
             const allSkills = await skillsRes.json();
@@ -93,166 +81,54 @@ function App() {
         }
       }
     }
-
-    // 4. Required tests
-    // let requiredTests = [];
-    // if (!isAdmin) {
-    //   if (employee_id === "26") {
-    //     const testsRes = await fetch(`http://localhost:5000/employee/26/tests`);
-    //     const testsData = await testsRes.json();
-    //     requiredTests = testsData.tests || [];
-    //   } else {
-    //     const testsRes = await fetch(`http://localhost:5000/employee/${employee_id}/required-tests`);
-    //     const testsData = await testsRes.json();
-    //     requiredTests = testsData.tests || [];
-    //   }
-    // }
-
     setEmployeeInfo(employeeInfo);
     setEmployeeRoles(employeeRoles);
     setEmployeeSkills(employeeSkills);
-    setRequiredTests(requiredTests);
-
-    if (!isAdmin) {
-      setShowDashboard(true); // Show dashboard after login
-      setShowResults(false);
-    }
+    setRequiredTests([]);
   };
 
-  if (!user) {
-    return <Login onLogin={handleLogin} />;
-  }
+  // Optionally, handleAssign, handleAnswer, handleSubmit, etc. can be defined here if needed for admin/test logic
 
-  if (isAdmin) {
-    return (
-      <div>
-        <AssignTest onAssign={handleAssign} />
-        <EntityTable entity="employees" columns={["employee_id","name","department","designation"]} title="Employees" />
-        <EntityTable entity="roles" columns={["role_id","role_name","min_education","min_experience"]} title="Roles" />
-        <EntityTable entity="competencies" columns={["competency_id","competency_name","category","description"]} title="Competencies" />
-        <EntityTable entity="employee_roles" columns={["id","employee_id","role_id"]} title="Employee Roles" />
-        <EntityTable entity="role_competencies" columns={["id","role_id","competency_id","proficiency_required"]} title="Role Competencies" />
-        <EntityTable entity="employee_competencies" columns={["id","employee_id","competency_id","proficiency_level","assessment_date"]} title="Employee Competencies" />
-        <EntityTable entity="assessments" columns={["assessment_id","competency_id","test_name","level"]} title="Assessments" />
-        <EntityTable entity="employee_assessment_results" columns={["id","employee_id","assessment_id","score","pass_fail","assessment_date"]} title="Assessment Results" />
-        <EntityTable entity="qualifications" columns={["qualification_id","employee_id","qualification_type","institution","year"]} title="Qualifications" />
-      </div>
-    );
-  }
-
-  if (showDashboard) {
-    return (
-      <EmployeeDashboard
-        employeeInfo={employeeInfo}
-        employeeRoles={employeeRoles}
-        employeeSkills={employeeSkills}
-        selectedRole={selectedRole}
-        setSelectedRole={setSelectedRole}
-        roles={roles}
-        roleCompetencies={roleCompetencies}
-        competencies={competencies}
-        competencyMap={competencyMap}
-      />
-    );
-  }
-
-  if (showResults) {
-    return (
-      <div>
-        <h2>Required Tests</h2>
-        <ul>
-          {requiredTests.map((test, idx) => (
-            <li key={idx} style={{marginBottom: '10px'}}>
-              {test.testName}
-              {test.testLink && (
-                <a href={test.testLink} target="_blank" rel="noopener noreferrer">
-                  <button>Go to Test Link</button>
-                </a>
-              )}
-              <button onClick={async () => {
-                // Fetch questions for this test (by test name)
-                const res = await fetch(`${BACKEND}/get-test/${employeeId}/${encodeURIComponent(test.testName)}`);
-                const data = await res.json();
-                setQuestions(data);
-                setShowResults(false); // Hide required tests, show test
-              }}>Start Test</button>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  }
-
-  // For non-admin, show test directly
   return (
-    <div>
-      <h2>Test</h2>
-      {questions.length === 0 ? (
-        <button onClick={async () => {
-          const res = await fetch(`${BACKEND}/get-test/${employeeId}`);
-          const data = await res.json();
-          setQuestions(data);
-        }}>Start Test</button>
-      ) : (
-        <>
-          {questions.map((q, idx) => (
-            <QuestionCard key={q.ID} question={q} index={idx} onAnswer={handleAnswer} />
-          ))}
-          <button onClick={handleSubmit}>Submit Test</button>
-        </>
-      )}
-    </div>
+    <Router>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            !user ? (
+              <Login onLogin={handleLogin} />
+            ) : isAdmin ? (
+              <AssignTest onAssign={() => {}} />
+            ) : (
+              <Navigate to="/dashboard" />
+            )
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            user && !isAdmin ? (
+              <EmployeeDashboard
+                employeeInfo={employeeInfo}
+                employeeRoles={employeeRoles}
+                employeeSkills={employeeSkills}
+                selectedRole={selectedRole}
+                setSelectedRole={setSelectedRole}
+                roles={roles}
+                roleCompetencies={roleCompetencies}
+                competencies={competencies}
+                competencyMap={competencyMap}
+              />
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route path="/test" element={<TestWindow />} />
+        {/* Add more admin/entity routes as needed */}
+      </Routes>
+    </Router>
   );
-
-  // Handler for test assignment (admin only)
-  async function handleAssign({ employeeId, position, level, testName }) {
-    await fetch(`${BACKEND}/assign-test`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ employeeId, testName, adminId: employeeId })
-    });
-    setTestAssigned(true);
-    // Fetch questions
-    const res = await fetch(`${BACKEND}/get-test/${employeeId}`);
-    const data = await res.json();
-    setQuestions(data);
-  }
-
-  // Handler for answering questions
-  function handleAnswer(questionId, selectedOption) {
-    setAnswers(prev => ({ ...prev, [questionId]: selectedOption }));
-  }
-
-  // Handler for submitting test
-  async function handleSubmit() {
-    const answerArr = questions.map(q => ({
-      questionId: q.ID,
-      selectedOption: answers[q.ID] || '',
-      isCorrect: (answers[q.ID] || '') === q.Answer
-    }));
-    await fetch(`${BACKEND}/submit-result`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ employeeId, testId: Date.now(), answers: answerArr })
-    });
-    // Fetch results
-    const res = await fetch(`${BACKEND}/results/${employeeId}`);
-    const data = await res.json();
-    setResults(data);
-    setShowResults(true);
-  }
-}
-
-// Helper component to show test link button
-function TestLinkButton({ testName }) {
-  const [link, setLink] = React.useState(null);
-  React.useEffect(() => {
-    fetch(`${BACKEND}/test-link/${encodeURIComponent(testName)}`)
-      .then(res => res.json())
-      .then(data => setLink(data.link));
-  }, [testName]);
-  if (!link) return null;
-  return <a href={link} target="_blank" rel="noopener noreferrer"><button>Go to Test Link</button></a>;
 }
 
 export default App;

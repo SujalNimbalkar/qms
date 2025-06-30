@@ -30,3 +30,5 @@ dist-ssr
 *.sw?
 
 
+# Google service account key (DO NOT COMMIT)
+backend/utils/dulcet-aileron-46421-xxxxxxx.json
