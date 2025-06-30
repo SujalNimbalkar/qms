@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 
 const SubmittedAnswers = () => {
-  const [submissions, setSubmissions] = useState([]);
+  const [scoreLog, setScoreLog] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/mcq/submitted-answers')
+    fetch('/api/mcq/score-log')
       .then(res => res.json())
       .then(data => {
-        setSubmissions(data.submissions || []);
+        setScoreLog(data.scoreLog || []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -18,33 +18,35 @@ const SubmittedAnswers = () => {
 
   return (
     <div>
-      <h2>All Submitted Answers</h2>
+      <h2>Employee Score Log</h2>
       <table border="1" cellPadding="6" style={{ borderCollapse: 'collapse', width: '100%' }}>
         <thead>
           <tr>
+            <th>Timestamp</th>
             <th>Employee ID</th>
             <th>Employee Name</th>
             <th>Employee Position</th>
-            <th>Question</th>
-            <th>Options</th>
-            <th>Submitted Option</th>
+            <th>Skill</th>
+            <th>Level</th>
+            <th>Score</th>
+            <th>Max Score</th>
+            <th>Percent</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
-          {submissions.map((s, idx) => (
+          {scoreLog.map((row, idx) => (
             <tr key={idx}>
-              <td>{s.employee_id}</td>
-              <td>{s.employee_name}</td>
-              <td>{s.employee_position}</td>
-              <td>{s.question_text}</td>
-              <td>
-                <ol type="A">
-                  {s.options && s.options.map((opt, i) => (
-                    <li key={i}>{opt}</li>
-                  ))}
-                </ol>
-              </td>
-              <td>{s.submitted_letter}</td>
+              <td>{row.timestamp}</td>
+              <td>{row.employee_id}</td>
+              <td>{row.employee_name}</td>
+              <td>{row.employee_position}</td>
+              <td>{row.skill}</td>
+              <td>{row.level}</td>
+              <td>{row.score}</td>
+              <td>{row.max_score}</td>
+              <td>{row.percent}</td>
+              <td>{row.status}</td>
             </tr>
           ))}
         </tbody>

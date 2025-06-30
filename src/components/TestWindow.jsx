@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import './TestWindow.css';
 
 const TestWindow = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { skill, level, employeeInfo, employeeRoles, employeeId } = location.state || {};
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +68,7 @@ const TestWindow = () => {
         options: q.options,
         selected_letter,
         skill: q.skill_id || skill,
-        level: q.difficulty || level,
+        level: level,
         employee_id: empId,
         employee_name: employeeName,
         employee_position: employeePosition
@@ -81,8 +82,19 @@ const TestWindow = () => {
     })
       .then(res => res.json())
       .then(data => {
-        if (data.success) alert('Answers submitted!');
-        else alert('Submission failed');
+        if (data.success) {
+          alert('Answers submitted!');
+          navigate('/dashboard', {
+            state: {
+              employeeInfo,
+              employeeRoles,
+              employeeId,
+              submittedTest: { skill, level }
+            }
+          });
+        } else {
+          alert('Submission failed');
+        }
       })
       .catch(() => {
         alert('Submission failed');

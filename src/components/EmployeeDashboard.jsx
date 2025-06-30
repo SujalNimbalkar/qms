@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ResultTable from './ResultTable';
 import EntityTable from './EntityTable';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './EmployeeDashboard.css';
 
 // --- Skill name to code mapping (expand as needed) ---
@@ -37,8 +37,19 @@ const EmployeeDashboard = ({
   const [testClickCounts, setTestClickCounts] = useState({}); // Click count per test
   const [showAllResults, setShowAllResults] = useState(false); // Show all results table
   const [allResults, setAllResults] = useState([]); // All employee results
+  const [submittedTests, setSubmittedTests] = useState([]);
 
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state && location.state.submittedTest) {
+      setSubmittedTests(prev => [
+        ...prev,
+        `${location.state.submittedTest.skill}-${location.state.submittedTest.level}`
+      ]);
+    }
+  }, [location.state]);
 
   const handleTestClick = (idx, skill, level) => {
     setTestClickCounts((prev) => {
@@ -131,8 +142,9 @@ const EmployeeDashboard = ({
                   <button
                     className="employee-dashboard-btn"
                     onClick={() => handleTestClick(idx, s.skill, s.level)}
+                    disabled={submittedTests.includes(`${s.skill}-${s.level}`)}
                   >
-                    Take Test
+                    {submittedTests.includes(`${s.skill}-${s.level}`) ? "Submitted" : "Take Test"}
                   </button>
                   {testClickCounts[idx] ? (
                     <span className="employee-dashboard-click-count">
