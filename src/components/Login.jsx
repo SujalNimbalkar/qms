@@ -1,7 +1,8 @@
-import { signInWithEmailAndPassword } from "firebase/auth";
 import React, { useState } from "react";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "./Firebase";
 import { toast } from "react-toastify";
+import './Login.css';
 
 function Login({ onLogin }) {
   const [email, setEmail] = useState("");
@@ -28,37 +29,39 @@ function Login({ onLogin }) {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h3>Login</h3>
+    <div className="login-root">
+      <form className="login-form" onSubmit={handleSubmit}>
+        <h3 className="login-title">Login</h3>
 
-      <div className="mb-3">
-        <label>Email address</label>
-        <input
-          type="email"
-          className="form-control"
-          placeholder="Enter email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </div>
+        <div className="login-field-group">
+          <label className="login-label">Email address</label>
+          <input
+            type="email"
+            className="login-input"
+            placeholder="Enter email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
 
-      <div className="mb-3">
-        <label>Password</label>
-        <input
-          type="password"
-          className="form-control"
-          placeholder="Enter password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-      </div>
+        <div className="login-field-group">
+          <label className="login-label">Password</label>
+          <input
+            type="password"
+            className="login-input"
+            placeholder="Enter password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
 
-      <div className="d-grid">
-        <button type="submit" className="btn btn-primary">
-          Submit
-        </button>
-      </div>
-    </form>
+        <div className="login-btn-row">
+          <button type="submit" className="login-btn">
+            Submit
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import './TestWindow.css';
 
 const TestWindow = () => {
   const location = useLocation();
@@ -88,31 +89,32 @@ const TestWindow = () => {
       });
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (!questions.length) return <div>No questions found for this skill/level.</div>;
+  if (loading) return <div style={{textAlign: 'center', marginTop: 40}}>Loading...</div>;
+  if (!questions.length) return <div style={{textAlign: 'center', marginTop: 40}}>No questions found for this skill/level.</div>;
 
   return (
-    <div>
-      <h2>Test: {skill} (Level {level})</h2>
+    <div className="testwindow-root">
+      <h2 className="testwindow-title">Test: {skill} (Level {level})</h2>
       <form onSubmit={handleSubmit}>
-        <ol>
+        <ol className="testwindow-questions">
           {questions.map((q, i) => (
-            <li key={i} style={{ marginBottom: 16 }}>
-              <div style={{ fontWeight: 'bold', marginBottom: 4 }}>
+            <li key={i} className="testwindow-question-card">
+              <div className="testwindow-question-text">
                 {q.question_text}
               </div>
-              <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
+              <ul className="testwindow-options">
                 {q.options.map((opt, j) => (
-                  <li key={j} style={{ marginBottom: 2 }}>
-                    <label>
+                  <li key={j} className="testwindow-option-item">
+                    <label className="testwindow-option-label">
                       <input
                         type="radio"
+                        className="testwindow-radio"
                         name={`q${i}`}
                         value={opt}
                         checked={selectedAnswers[i] === opt}
                         onChange={() => handleOptionChange(i, opt)}
                         required
-                      />{' '}
+                      />
                       {opt}
                     </label>
                   </li>
@@ -121,7 +123,11 @@ const TestWindow = () => {
             </li>
           ))}
         </ol>
-        <button type="submit">Submit</button>
+        <div className="testwindow-submit-row">
+          <button type="submit" className="testwindow-submit-btn">
+            Submit
+          </button>
+        </div>
       </form>
     </div>
   );
